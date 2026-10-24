@@ -3,14 +3,32 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#f8f9ff" />
     <title>Testing</title>
+    <script type="module" src="/src/theme.js"></script>
   </head>
   <body>
-    <p>testing</p>
-    <small id="version"></small>
-    <p><button id="check">Check for updates</button> <button id="reload" hidden>Reload</button></p>
-    <p id="status" role="status"></p>
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="Testing home"><span class="brand-icon" aria-hidden="true">t</span>Testing</a>
+      <button id="theme" class="theme-switch" type="button" role="switch" aria-checked="false" aria-label="Dark mode">
+        <span class="theme-label">Dark mode</span><span class="track" aria-hidden="true"><span class="thumb"></span></span>
+      </button>
+    </header>
+    <main>
+      <section class="card" aria-labelledby="title">
+        <span class="eyebrow"><span class="dot"></span> A LITTLE SPACE TO EXPERIMENT</span>
+        <div class="symbol" aria-hidden="true">✳</div>
+        <h1 id="title">testing</h1>
+        <p class="description">Simple by design. Ready for what's next.</p>
+        <div class="actions">
+          <button id="check" class="filled" type="button">Check for updates <span aria-hidden="true">↗</span></button>
+          <button id="reload" class="outlined" type="button" hidden>Reload to update</button>
+        </div>
+        <p id="status" role="status" aria-live="polite"></p>
+      </section>
+    </main>
+    <footer><span>BUILT TO KEEP THINGS SIMPLE</span><small id="version"></small></footer>
     <script type="module" src="/src/main.js"></script>
   </body>
 </html>

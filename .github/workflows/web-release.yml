@@ -1,4 +1,5 @@
-# Primary release: builds, tags the exact built SHA, creates Latest and deploys Pages.
+# Primary release: builds a Cloudflare-ready ZIP, tags the exact built SHA and creates Latest.
+# Does NOT deploy, require hosting tokens, or alter release notes.
 # Never commits version bumps; never overwrites an existing tag or release.
 name: Web — Release
 on:
@@ -23,11 +24,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      pages: write
-      id-token: write
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     env:
       GH_TOKEN: ${{ github.token }}
       VERSION_OVERRIDE: ${{ inputs.version_override }}
@@ -61,11 +57,11 @@ jobs:
           APP_SHA: ${{ github.sha }}
         run: |
           npm pkg set "version=$APP_VERSION.0"
-          npm run build -- --base="/${{ github.event.repository.name }}/"
+          npm run build
       - name: Package web build
         env:
           VERSION: ${{ steps.version.outputs.version }}
-        run: cd dist && zip -r "../Testing-${VERSION}-web.zip" .
+        run: cd dist && zip -r "../vite-testing-web.zip" .
       - name: Create tag and Latest release
         env:
           VERSION: ${{ steps.version.outputs.version }}
@@ -74,14 +70,8 @@ jobs:
           if gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/v$VERSION" >/dev/null 2>&1; then
             echo '::error::Tag already exists. Choose an unused override or run again for the next version.'; exit 1
           fi
-          gh release create "v$VERSION" "Testing-${VERSION}-web.zip" --target "$GITHUB_SHA" --title "Testing — v$VERSION" --generate-notes --latest
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: dist
-      - name: Deploy to Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
-      - name: Summary (including deployment failures)
+          gh release create "v$VERSION" "vite-testing-web.zip" --target "$GITHUB_SHA" --title "vite-testing — v$VERSION" --generate-notes --latest
+      - name: Summary
         if: always()
         env:
           VERSION: ${{ steps.version.outputs.version }}
