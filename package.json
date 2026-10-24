@@ -8,7 +8,7 @@
     "build": "vite build",
     "preview": "vite preview --host 0.0.0.0",
     "test": "node --test",
-    "check": "node --check src/main.js && node --check src/version.js && node --check vite.config.js && node --check scripts/version.mjs && node --check src/theme.js && node --check src/reveal.js"
+    "check": "node --check src/main.js && node --check scripts/release-version.js && node --check vite.config.js && node --check scripts/version.mjs && node --check src/theme.js && node --check src/reveal.js"
   },
   "devDependencies": {
     "vite": "^7.1.0"

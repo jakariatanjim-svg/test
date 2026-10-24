@@ -1,6 +1,6 @@
 import { execFileSync } from 'node:child_process';
 import { appendFileSync } from 'node:fs';
-import { nextVersion } from '../src/version.js';
+import { nextVersion } from './release-version.js';
 try {
   const tags = execFileSync('git', ['tag', '--list'], { encoding: 'utf8' }).trim().split('\n');
   const { version, lower } = nextVersion(tags, process.env.VERSION_OVERRIDE || '');
