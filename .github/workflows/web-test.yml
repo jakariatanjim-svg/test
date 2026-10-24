@@ -23,13 +23,9 @@ jobs:
       - name: Select version label
         id: version
         run: node scripts/version.mjs
-      - name: Stamp and build
-        env:
-          APP_VERSION: ${{ steps.version.outputs.version }}
-          APP_SHA: ${{ github.sha }}
-        run: |
-          npm pkg set "version=$APP_VERSION.0"
-          npm run build
+      # Web versions belong to release metadata, never to the website bundle.
+      - name: Build website
+        run: npm run build
       - name: Artifact name
         id: artifact
         env:

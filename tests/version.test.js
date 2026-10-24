@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { nextVersion, parseVersion, releaseStatus } from '../src/version.js';
+import { nextVersion, parseVersion } from '../scripts/release-version.js';
 test('first version and numeric rollover', () => {
   assert.equal(nextVersion([]).version, '1.0');
   assert.equal(nextVersion(['v1.9', 'v1.2', 'junk']).version, '2.0');
@@ -13,10 +13,7 @@ test('overrides and collisions', () => {
   assert.throws(() => nextVersion([], '1.10'));
   assert.equal(parseVersion('v1.2.3'), null);
 });
-test('only strictly newer versions offer updates', () => {
-  assert.equal(releaseStatus('1.0', 'v1.1', true), 'available');
-  assert.equal(releaseStatus('1.0', 'v1.1', false), 'preparing');
-  assert.equal(releaseStatus('1.1', 'v1.1', true), 'current');
-  assert.equal(releaseStatus('2.0', 'v1.9', true), 'current');
-  assert.equal(releaseStatus('1.0', 'bad', true), 'unknown');
+test('only canonical vX.Y tags affect release numbering', () => {
+  assert.equal(nextVersion(['9.9', 'v01.2', 'v1.10', 'v2.3.4']).version, '1.0');
+  assert.equal(nextVersion(['v2.9', 'v10.0', 'v9.9']).version, '10.1');
 });
