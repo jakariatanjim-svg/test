@@ -61,7 +61,9 @@ jobs:
       - name: Package web build
         env:
           VERSION: ${{ steps.version.outputs.version }}
-        run: cd dist && zip -r "../vite-testing-web.zip" .
+        run: |
+          NAME="${GITHUB_REPOSITORY#*/}"
+          cd dist && zip -r "../${NAME}-web.zip" .
       - name: Create tag and Latest release
         env:
           VERSION: ${{ steps.version.outputs.version }}
@@ -70,7 +72,8 @@ jobs:
           if gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/v$VERSION" >/dev/null 2>&1; then
             echo '::error::Tag already exists. Choose an unused override or run again for the next version.'; exit 1
           fi
-          gh release create "v$VERSION" "vite-testing-web.zip" --target "$GITHUB_SHA" --title "vite-testing — v$VERSION" --generate-notes --latest
+          NAME="${GITHUB_REPOSITORY#*/}"
+          gh release create "v$VERSION" "${NAME}-web.zip" --target "$GITHUB_SHA" --title "$NAME — v$VERSION" --generate-notes --latest
       - name: Summary
         if: always()
         env:

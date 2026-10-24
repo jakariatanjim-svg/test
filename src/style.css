@@ -45,3 +45,8 @@ footer small { letter-spacing: .2px; font-size: 11px; }
 [hidden] { display: none !important; }
 @media (max-width: 480px) { .theme-label { display: none; } footer { flex-direction: column; align-items: center; } .card { padding-inline: 18px; } }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+
+/* Reserve a stable stage for the scramble, keeping the surrounding layout still. */
+#title { min-height: 1.2em; }
+#title-text { display: inline-block; min-width: 3.8em; }
+#title-text.revealing { font-family: ui-monospace, monospace; letter-spacing: -.07em; color: var(--primary); }
