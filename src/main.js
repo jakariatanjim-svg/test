@@ -1,3 +1,4 @@
+import { revealText } from './reveal.js';
 import { releaseStatus } from './version.js';
 const button = document.querySelector('#check');
 const message = document.querySelector('#status');
@@ -58,3 +59,5 @@ reload.addEventListener('click', () => {
   location.replace(url);
 });
 check();
+
+revealText(document.querySelector('#title-text'), { reducedMotion: matchMedia('(prefers-reduced-motion: reduce)').matches });
