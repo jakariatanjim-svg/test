@@ -1,0 +1,90 @@
+# Primary release: builds, tags the exact built SHA, creates Latest and deploys Pages.
+# Never commits version bumps; never overwrites an existing tag or release.
+name: Web — Release
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: Confirm release from a non-default branch
+        type: boolean
+        default: false
+      version_override:
+        description: Optional unused version (3 or 1.4)
+        type: string
+        required: false
+permissions:
+  contents: read
+# One global queue prevents concurrent version allocation; releases are never cancelled.
+concurrency:
+  group: web-release
+  cancel-in-progress: false
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    env:
+      GH_TOKEN: ${{ github.token }}
+      VERSION_OVERRIDE: ${{ inputs.version_override }}
+    steps:
+      - name: Guard release branch
+        env:
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          CONFIRM: ${{ inputs.confirm }}
+        run: |
+          if [ "$GITHUB_REF_TYPE" != branch ]; then
+            echo '::error::Run this workflow from a branch, not a tag.'; exit 1
+          fi
+          if [ "$GITHUB_REF_NAME" != "$DEFAULT_BRANCH" ] && [ "$CONFIRM" != true ]; then
+            echo '::error::Select the default branch or explicitly enable confirm.'; exit 1
+          fi
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run check && npm test
+      - name: Select version label
+        id: version
+        run: node scripts/version.mjs
+      - name: Stamp and build
+        env:
+          APP_VERSION: ${{ steps.version.outputs.version }}
+          APP_SHA: ${{ github.sha }}
+        run: |
+          npm pkg set "version=$APP_VERSION.0"
+          npm run build -- --base="/${{ github.event.repository.name }}/"
+      - name: Package web build
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: cd dist && zip -r "../Testing-${VERSION}-web.zip" .
+      - name: Create tag and Latest release
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          # GitHub creates the tag at the exact SHA; no source commits or git pushes.
+          if gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/v$VERSION" >/dev/null 2>&1; then
+            echo '::error::Tag already exists. Choose an unused override or run again for the next version.'; exit 1
+          fi
+          gh release create "v$VERSION" "Testing-${VERSION}-web.zip" --target "$GITHUB_SHA" --title "Testing — v$VERSION" --generate-notes --latest
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+      - name: Deploy to Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+      - name: Summary (including deployment failures)
+        if: always()
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          BRANCH: ${{ github.ref_name }}
+        run: |
+          printf '| Branch | Version | Tag | Release |\n|---|---|---|---|\n| %s | %s | v%s | https://github.com/%s/releases/tag/v%s |\n' "$BRANCH" "$VERSION" "$VERSION" "$GITHUB_REPOSITORY" "$VERSION" >> "$GITHUB_STEP_SUMMARY"

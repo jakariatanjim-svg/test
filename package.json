@@ -1,0 +1,16 @@
+{
+  "name": "vite-testing",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "vite build",
+    "preview": "vite preview --host 0.0.0.0",
+    "test": "node --test",
+    "check": "node --check src/main.js && node --check src/version.js && node --check vite.config.js && node --check scripts/version.mjs"
+  },
+  "devDependencies": {
+    "vite": "^7.1.0"
+  }
+}
