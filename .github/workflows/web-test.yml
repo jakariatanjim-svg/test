@@ -1,0 +1,51 @@
+# Builds a version-labelled web artifact only; never creates tags, releases or deployments.
+name: Web — Test Build
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: web-test-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run check && npm test
+      - name: Select version label
+        id: version
+        run: node scripts/version.mjs
+      - name: Stamp and build
+        env:
+          APP_VERSION: ${{ steps.version.outputs.version }}
+          APP_SHA: ${{ github.sha }}
+        run: |
+          npm pkg set "version=$APP_VERSION.0"
+          npm run build -- --base="/${{ github.event.repository.name }}/"
+      - name: Artifact name
+        id: artifact
+        env:
+          BRANCH: ${{ github.ref_name }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          CLEAN=$(printf '%s' "$BRANCH" | sed 's/[^a-zA-Z0-9._-]/-/g')
+          echo "name=Testing-${CLEAN}-${GITHUB_SHA:0:7}-v${VERSION}" >> "$GITHUB_OUTPUT"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.artifact.outputs.name }}
+          path: dist/
+          retention-days: 7
+      - name: Summary
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          BRANCH: ${{ github.ref_name }}
+        run: |
+          printf '| Branch | Version | Tag | Release |\n|---|---|---|---|\n| %s | %s | None (test only) | None |\n' "$BRANCH" "$VERSION" >> "$GITHUB_STEP_SUMMARY"
